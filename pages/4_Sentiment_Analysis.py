@@ -1,49 +1,39 @@
-import pandas as pd
-import numpy as np
-import seaborn as sns
+import streamlit as st
 import matplotlib.pyplot as plt
-import sqlite3
 from textblob import TextBlob
 from collections import Counter
+from utils import load_data
 
-# 1. Shows all columns (You already have this)
-pd.set_option('display.max_columns', None)
+st.title("Sentiment Analysis")
+df = load_data()
 
-# 2. DISABLES WRAPPING by setting the display width to a very high number
-pd.set_option('display.width', 1000)
+# Let the user choose the sample size so the app doesn't hang
+sample_size = st.slider("Select sample size for analysis", 5000, 50000, 20000)
 
-import  warnings
-from warnings import filterwarnings
-filterwarnings("ignore")
+if st.button("Run Analysis"):
+    with st.spinner("Calculating polarity..."):
+        sample = df.head(sample_size).copy()
 
-con = sqlite3.connect(r'C:\Users\leona\PycharmProjects\Python Data Analysis Projects\Amazon-dataAnalysis\database.sqlite')
+        # Applying your logic
+        sample['polarity'] = sample['Summary'].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
 
-df = pd.read_sql_query("select * from REVIEWS", con)
+        pos_reviews = sample[sample['polarity'] > 0]
+        neg_reviews = sample[sample['polarity'] < 0]
 
-df_valid = df[df['HelpfulnessNumerator']<=df['HelpfulnessDenominator']]
+        col1, col2 = st.columns(2)
 
-# print(df_valid.columns)
-data = df_valid.drop_duplicates(('UserId', 'ProfileName', 'Time', 'Text'))
-data['Time'] = pd.to_datetime(data['Time'], unit = 's')
-# print(data['UserId'].value_counts())
+        with col1:
+            st.subheader("Top Positive Phrases")
+            pos_counts = Counter(pos_reviews['Summary']).most_common(10)
+            st.table(pos_counts)
 
-sample = data[0:50000]
+        with col2:
+            st.subheader("Top Negative Phrases")
+            neg_counts = Counter(neg_reviews['Summary']).most_common(10)
+            st.table(neg_counts)
 
-polarity = []
-
-for text in sample['Summary']:
-    try:
-        polarity.append(TextBlob(text).sentiment.polarity)
-    except:
-        polarity.append(0)
-
-sample['polarity'] = polarity
-
-sample_negative = sample[sample['polarity']<0]
-sample_positive = sample[sample['polarity']>0]
-
-countnegative = Counter(sample_negative['Summary']).most_common(10)
-countpositive = Counter(sample_positive['Summary']).most_common(10)
-
-print(countnegative)
-print(countpositive)
+        # Revived your visualization idea
+        fig, ax = plt.subplots()
+        sample['polarity'].hist(bins=20, ax=ax, color='skyblue', edgecolor='black')
+        ax.set_title("Distribution of Sentiment Polarity")
+        st.pyplot(fig)
