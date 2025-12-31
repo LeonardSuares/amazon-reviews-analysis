@@ -1,70 +1,33 @@
-import pandas as pd
-import numpy as np
-import seaborn as sns
+import streamlit as st
 import matplotlib.pyplot as plt
-import sqlite3
+import seaborn as sns
+from utils import load_data
 
-# 1. Shows all columns (You already have this)
-pd.set_option('display.max_columns', None)
+st.title("Reviewer Behavior Analysis")
+df = load_data()
 
-# 2. DISABLES WRAPPING by setting the display width to a very high number
-pd.set_option('display.width', 1000)
+# Logic: Identify frequent reviewers
+user_counts = df['UserId'].value_counts()
+df['viewer_type'] = df['UserId'].apply(lambda x: "Frequent" if user_counts[x] > 50 else "Not Frequent")
 
-import  warnings
-from warnings import filterwarnings
-filterwarnings("ignore")
+# Calculate length
+df['Text_length'] = df['Text'].apply(lambda x: len(str(x).split(' ')))
 
-con = sqlite3.connect(r'C:\Users\leona\PycharmProjects\Python Data Analysis Projects\Amazon-dataAnalysis\database.sqlite')
+st.subheader("Review Length: Frequent vs. Non-Frequent")
 
-df = pd.read_sql_query("select * from REVIEWS", con)
+# Visualization
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
-df_valid = df[df['HelpfulnessNumerator']<=df['HelpfulnessDenominator']]
+# Frequent
+sns.boxplot(y=df[df['viewer_type']=='Frequent']['Text_length'], ax=ax1, color="skyblue")
+ax1.set_title('Frequent Reviewers (>50 reviews)')
+ax1.set_ylim(0, 600)
 
-# print(df_valid.columns)
-data = df_valid.drop_duplicates(('UserId', 'ProfileName', 'Time', 'Text'))
-data['Time'] = pd.to_datetime(data['Time'], unit = 's')
-# print(data['UserId'].value_counts())
-data_count = data['UserId'].value_counts()
+# Non-Frequent
+sns.boxplot(y=df[df['viewer_type']=='Not Frequent']['Text_length'], ax=ax2, color="salmon")
+ax2.set_title('Non-Frequent Reviewers')
+ax2.set_ylim(0, 600)
 
-# The lambda function must reference the 'data_count' variable, not 'x'.
-data['viewer_type'] = data['UserId'].apply(lambda user : "Frequent" if data_count[user] > 50 else "Not Frequent")
-# print(data['viewer_type']=='Not Frequent')
-not_freq_df = data[data['viewer_type']=='Not Frequent']
-freq_df = data[data['viewer_type']=='Frequent']
+st.pyplot(fig)
 
-# freq_df['Score'].value_counts().plot(kind='bar')
-# plt.title('Frequent buyers and product scores', fontsize=16)
-# plt.xlabel('Scores', fontsize=12)
-# plt.ylabel('Count', fontsize=12)
-# plt.show()
-#
-# not_freq_df['Score'].value_counts().plot(kind='bar')
-# plt.title('Non-Frequent buyers and product scores', fontsize=16)
-# plt.xlabel('Scores', fontsize=12)
-# plt.ylabel('Count', fontsize=12)
-# plt.show()
-
-# print(len(data['Text'][0].split(' ')))
-
-def calculate_length(text):
-    return len(text.split(' '))
-
-data['Text_length'] = data['Text'].apply(calculate_length)
-# print(data['viewer_type'].unique())
-
-not_freq_data = data[data['viewer_type']=='Not Frequent']
-freq_data = data[data['viewer_type']=='Frequent']
-
-fig = plt.figure()
-
-ax1 = fig.add_subplot(121)
-ax1.boxplot(freq_data['Text_length'])
-ax1.set_xlabel('Frequency of frequent reviewers')
-ax1.set_ylim(0,600)
-
-ax2 = fig.add_subplot(122)
-ax2.boxplot(not_freq_data['Text_length'])
-ax2.set_xlabel('Frequency of non-frequent reviewers')
-ax2.set_ylim(0,600)
-
-plt.show()
+st.info("Frequent reviewers tend to have a more consistent review length compared to casual users.")

@@ -1,62 +1,35 @@
-import pandas as pd
-import numpy as np
+import streamlit as st
 import seaborn as sns
 import matplotlib.pyplot as plt
-import sqlite3
+from utils import load_data
 
-# 1. Shows all columns (You already have this)
-pd.set_option('display.max_columns', None)
+st.title("Product Review Analysis")
 
-# 2. DISABLES WRAPPING by setting the display width to a very high number
-pd.set_option('display.width', 1000)
+# 1. Load data using our central utility
+df = load_data()
 
-import  warnings
-from warnings import filterwarnings
-filterwarnings("ignore")
+# 2. Logic to filter products with > 500 reviews
+prod_count = df['ProductId'].value_counts().reset_index()
+prod_count.columns = ['ProductId', 'count']
+freq_prod_ids = prod_count[prod_count['count'] > 500]['ProductId'].values
 
-con = sqlite3.connect(r'C:\Users\leona\PycharmProjects\Python Data Analysis Projects\Amazon-dataAnalysis\database.sqlite')
+# Filter main dataframe
+freq_prod_df = df[df['ProductId'].isin(freq_prod_ids)]
 
-df = pd.read_sql_query("select * from REVIEWS", con)
+st.subheader("Frequency of Products with Over 500 Reviews")
 
-df_valid = df[df['HelpfulnessNumerator']<=df['HelpfulnessDenominator']]
-
-# print(df_valid.columns)
-data = df_valid.drop_duplicates(('UserId', 'ProfileName', 'Time', 'Text'))
-data['Time'] = pd.to_datetime(data['Time'], unit = 's')
-
-
-# print(len(data['ProductId'].unique()))
-prod_count = (data['ProductId'].value_counts().reset_index())
-
-prod_ids = prod_count[prod_count['count'] > 500]
-
-freq_prod_ids = prod_ids['ProductId'].values
-
-freq_prod_df = data[data['ProductId'].isin(freq_prod_ids)]
-# print(freq_prod_df)
-plt.figure(figsize=(10, 16)) # Increased height (16) to accommodate more ProductIds
-
-# 2. Generate the countplot
+# 3. Visualization
+fig, ax = plt.subplots(figsize=(10, 12))
 sns.countplot(
     y='ProductId',
     data=freq_prod_df,
     hue='Score',
-    # Use the number of reviews as the color hue for better visual distinction
-    order=freq_prod_df['ProductId'].value_counts().index
+    order=freq_prod_df['ProductId'].value_counts().index,
+    ax=ax
 )
+ax.set_title('Product Score Distribution (High Volume)', fontsize=16)
+st.pyplot(fig)
 
-plt.title('Frequency of Products with Over 500 Reviews', fontsize=16)
-plt.xlabel('Number of Reviews', fontsize=12)
-plt.ylabel('Product ID', fontsize=12)
-
-plt.show()
-
-
-
-
-# print(f"\nTotal unique products before filtering: {len(data['ProductId'].unique())} 🛍️")
-# print(f"Total products reviewed more than 500 times: {len(prodtotal.index)} 🌟")
-# print("\nTop 10 Most Reviewed Products:")
-# print(prodtotal.head(10))
-
-# fre_prod_df = data[data['ProductId'].isin(freq_prod_ids)]
+# Added the "Nice to have" stats from your comments
+st.write(f"**Total unique products before filtering:** {df['ProductId'].nunique()}")
+st.write(f"**Total products reviewed more than 500 times:** {len(freq_prod_ids)}")
