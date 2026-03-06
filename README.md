@@ -3,25 +3,37 @@
 **Live Application:** [View on Streamlit Cloud](https://amazon-reviews-analysis-fpn7avhj8gxxcfeayq595h.streamlit.app/)
 
 ## 📖 Project Overview
-This project is a high-performance, interactive Streamlit dashboard designed for analyzing over 250,000 Amazon fine food reviews. It demonstrates advanced data engineering techniques, such as Parquet conversion for efficiency, a multi-page app architecture, and natural language processing for sentiment analysis.
+This project is a high-performance, interactive Streamlit dashboard designed for analyzing over 250,000 Amazon fine food reviews. It demonstrates advanced data engineering techniques, such as **Parquet conversion** for memory efficiency, a **multi-page architecture**, and **Natural Language Processing (NLP)** for sentiment analysis.
 
 ---
 
-## 🚀 Live Features
+## 🚀 Key Features
 
-* **Product Analysis:** Explore score distributions and trends for the most reviewed products in the dataset.
-* **Reviewer Behavior:** A deep dive into the habits and patterns of "Frequent" vs. "Casual" reviewers to understand user engagement.
-* **Sentiment Analysis:** Real-time NLP processing using TextBlob to correlate written review summaries with their corresponding star ratings.
-* **Interactive Visuals:** High-quality data storytelling built with Seaborn and Matplotlib for clear and actionable insights.
+* **Interactive Dashboards:** Switched from static plots to **Plotly Express**, allowing users to zoom, hover, and filter data dynamically.
+* **Product Analysis:** Explore score distributions and trends for high-volume products (500+ reviews).
+* **Reviewer Behavior:** Comparative analysis of "Frequent" vs. "Casual" reviewers using distribution density and word counts.
+* **Sentiment Analysis:** Real-time NLP processing using **TextBlob** to calculate polarity and correlate text with star ratings.
+* **Optimized Data Pipeline:** Uses cached Parquet loading to handle large datasets with minimal latency.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** Streamlit (Multi-page architecture)
-* **Data Engineering:** Pandas, PyArrow, Brotli (optimized Parquet compression)
+* **Dashboard:** Streamlit (Multi-page)
+* **Visualizations:** Plotly Express (Interactive), Seaborn (Statistical)
+* **Data Engineering:** Pandas, PyArrow (Parquet)
 * **NLP:** TextBlob
-* **Visualization:** Seaborn, Matplotlib
+
+---
+
+## ⚙️ Local Setup
+
+To run this project locally, follow these steps:
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/your-username/Amazon-Review-Analysis.git](https://github.com/your-username/Amazon-Review-Analysis.git)
+   cd Amazon-Review-Analysis
 
 ---
 
