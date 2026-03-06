@@ -1,49 +1,57 @@
 import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns  # <-- You need this for boxenplot
+import plotly.express as px
+import plotly.graph_objects as go
 from textblob import TextBlob
 from collections import Counter
+import pandas as pd
 from utils import load_data
 
-st.title("Sentiment Analysis")
+st.set_page_config(layout="wide", page_title="Sentiment Analysis")
+
+st.title("🧠 Sentiment Analysis")
 df = load_data()
 
-sample_size = st.slider("Select sample size for analysis", 5000, 50000, 20000)
+# 1. Sidebar/Top Controls
+with st.expander("⚙️ Analysis Settings", expanded=True):
+    sample_size = st.slider("Select sample size for analysis", 5000, 50000, 20000)
+    run_btn = st.button("Run Analysis", use_container_width=True)
 
-if st.button("Run Analysis"):
-    with st.spinner("Calculating polarity..."):
-        # 1. Prepare Sample
-        sample = df.head(sample_size).copy()
-
-        # 2. Calculation (MUST happen before plotting)
+if run_btn:
+    with st.spinner("Analyzing sentiment polarity..."):
+        # Prepare Sample
+        sample = df.sample(sample_size).copy()  # Use .sample() instead of .head() for better variety
         sample['polarity'] = sample['Summary'].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
 
-        # 3. Correlation Chart (Boxenplot)
+        # --- SECTION 1: RELATIONSHIP ANALYSIS ---
         st.subheader("Sentiment Polarity vs. Star Rating")
-        fig_corr, ax_corr = plt.subplots(figsize=(10, 6))
-        sns.boxenplot(x='Score', y='polarity', data=sample, ax=ax_corr, palette="coolwarm")
-        ax_corr.set_title("Does Sentiment Match the Star Rating?")
-        st.pyplot(fig_corr)
-        st.write("_Interpretation: 5-star reviews should have high positive polarity (closer to 1.0)._")
 
-        # 4. Phrase Counters
-        pos_reviews = sample[sample['polarity'] > 0]
-        neg_reviews = sample[sample['polarity'] < 0]
+        # Plotly Violin plot shows density better than a boxenplot
+        fig_violin = px.violin(
+            sample,
+            x='Score',
+            y='polarity',
+            color='Score',
+            box=True,
+            points=False,
+            color_discrete_sequence=px.colors.diverging.RdYlGn,
+            template="plotly_white",
+            height=500
+        )
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader("Top Positive Phrases")
-            pos_counts = Counter(pos_reviews['Summary']).most_common(10)
-            st.table(pos_counts)
-        with col2:
-            st.subheader("Top Negative Phrases")
-            neg_counts = Counter(neg_reviews['Summary']).most_common(10)
-            st.table(neg_counts)
+        fig_violin.update_layout(
+            showlegend=False,
+            xaxis_title="Star Rating (1-5)",
+            yaxis_title="Sentiment Polarity (-1 to 1)",
+            margin=dict(l=20, r=20, t=20, b=20)
+        )
 
-        # 5. Polarity Distribution
-        st.subheader("Overall Sentiment Vibe")
-        fig_dist, ax_dist = plt.subplots()
-        sample['polarity'].hist(bins=30, ax=ax_dist, color='skyblue', edgecolor='black')
-        ax_dist.set_title("Distribution of Sentiment Polarity")
-        st.pyplot(fig_dist)
+        st.plotly_chart(fig_violin, use_container_width=True)
+        st.info(
+            "💡 **Interpretation:** 5-star reviews should cluster toward 1.0 (Positive), while 1-star reviews should lean toward -1.0 (Negative).")
 
+        st.divider()
+
+        # --- SECTION 2: TOP PHRASES ---
+        st.subheader("🗣️ Common Sentiment Phrases")
+
+        pos_reviews = sample[sample['polarity'] > 0.5]  #
