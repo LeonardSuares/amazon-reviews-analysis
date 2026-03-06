@@ -7,6 +7,15 @@ This project is a high-performance, interactive Streamlit dashboard designed for
 
 ---
 
+### Why this project?
+In the massive ecosystem of e-commerce, consumer feedback is the most valuable "unstructured" data available. This project was born out of a desire to solve three specific challenges:
+
+* **Data Scalability:** Handling over 250,000 records efficiently on a web interface by utilizing **Parquet and Brotli compression** for near-instant load times.
+* **User Behavior Profiling:** Moving beyond simple averages to identify if **"Frequent" reviewers** provide more critical or detailed feedback than "Casual" ones.
+* **Sentiment Gap Analysis:** Detecting **"false positives"**—reviews where a user gives 5 stars but writes a summary with negative polarity—to help brands identify hidden friction points.
+
+---
+
 ## 🚀 Key Features
 
 * **Interactive Dashboards:** Switched from static plots to **Plotly Express**, allowing users to zoom, hover, and filter data dynamically.
